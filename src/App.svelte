@@ -11,8 +11,7 @@
 	    return "";
 	  }
 	  return `${q.currency} ${number.toLocaleString(undefined, {
-	    minimumFractionDigits: 2,
-	    maximumFractionDigits: 2
+	    minimumFractionDigits: 2
 	  })}`;
 	};
 	const qty = number => {
