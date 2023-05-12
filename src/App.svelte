@@ -19,7 +19,9 @@
 	  if (number === 0 || isNaN(number)) {
 	    return "";
 	  }
-	  return number;
+	  return number.toLocaleString(undefined, {
+	    minimumFractionDigits: 0
+	  });
 	};
 	const rate = rate => {
 	  rate = Number(rate) * 100;
@@ -60,7 +62,6 @@
 	$: {
 	  document.body.style = data[q.lang]["font-style"];
 	}
-
 	$: l = {
 	  ...data[q.lang].label[""],
 	  ...data[q.lang].label[q.doc]
@@ -90,14 +91,14 @@
 	{#each Object.keys(data) as lng, i (`lang-${i}`)}
 		<button class="block duration-300 p-4 {q.lang === lng ? "bg-green-500 text-gray-100" : "text-gray-900 bg-gray-100 hover:bg-green-500 focus:bg-green-500 hover:text-gray-100 focus:text-gray-100"}" on:click={() => {
 			q.lang = lng
-			}}>
-			{lng =='th' ? 'ไทย' : 'Eng'}
+		}}>
+			{data[lng]['']}
 		</button>
 	{/each}
 	{#each Object.keys(data[q.lang].label) as dc, i (`doc-${i}`)}
 		<button class="block duration-300 p-4 {q.doc === dc ? "bg-green-500 text-gray-100" : "text-gray-900 bg-gray-100 hover:bg-green-500 focus:bg-green-500 hover:text-gray-100 focus:text-gray-100"}" on:click={() => {
 			q.doc = dc
-			}}>
+		}}>
 			{data[q.lang].label[dc].title}
 		</button>
 	{/each}

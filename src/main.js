@@ -3,6 +3,7 @@ import "./style.css";
 
 let data = {
   "": {
+    "": "English",
     "font-link":
       "https://fonts.googleapis.com/css2?family=Titillium+Web&display=swap",
     "font-style": "font-family: 'Titillium Web', sans-serif;",
@@ -74,6 +75,7 @@ let data = {
   },
 
   th: {
+    "": "ภาษาไทย",
     "font-link": "https://fonts.googleapis.com/css2?family=Athiti&display=swap",
     "font-style": "font-family: 'Athiti', sans-serif;",
     label: {
