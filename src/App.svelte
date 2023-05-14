@@ -277,7 +277,11 @@
 	</div>
 </div>
 
-<div class="flex flex-wrap justify-center items-center my-4 print:hidden">
+<div class="flex flex-wrap justify-center items-center my-4 print:hidden gap-4">
+	<label class="">
+		<span class="">Currency:</span>
+		<input class="border border-green-500 w-12" bind:value={q.currency} />
+	</label>
 	<button
 		class="block duration-300 p-4 bg-green-500 text-gray-100 hover:bg-gray-100 focus:bg-gray-100 hover:text-gray-900 focus:text-gray-900"
 		on:click={() => window.print()}
