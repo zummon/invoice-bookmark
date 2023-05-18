@@ -4,6 +4,8 @@
 
 	let l = data[""].label[""];
 	let q = data[""].q;
+	
+	let saveink = false
 
 	const price = number => {
 	  number = Number(number);
@@ -107,7 +109,7 @@
 <div class="bg-white text-black max-w-[60rem] mx-auto print:max-w-none print:mx-0" >
 	<div class="grid grid-cols-2">
 		<div class="">
-			<div class="w-1/2 md:w-1/3 h-full p-2 mx-auto rounded-b-full bg-green-400 shadow-lg">
+			<div class="w-1/2 md:w-1/3 h-full p-2 mx-auto rounded-b-full shadow-lg {saveink ? '' : 'bg-green-400'}">
 				<img class="my-auto" src={q.vendorLogo} alt="" width="" height="">
 			</div>
 		</div>
@@ -140,18 +142,18 @@
 	<table class="w-full my-3">
 		<thead class="text-center">
 			<tr class="text-white ">
-				<td class="p-2 bg-green-400 rounded shadow-md w-px whitespace-nowrap">{l.itemNo}</td>
-				<td class="bg-green-400 rounded shadow-md">
+				<td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}">{l.itemNo}</td>
+				<td class="rounded shadow-md {saveink ? 'text-green-400' : 'bg-green-400'}">
 					<div class="flex">
 						<p class="p-2 flex-grow">{l.itemDesc}</p>
-						<button class="p-2 focus:bg-green-600 hover:bg-green-600 rounded-full transition duration-300 ease-in-out print:hidden" on:click={addItem}>
+						<button class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden" on:click={addItem}>
 							<!-- heroicons solid duplicate -->
 							<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 								<path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
 								<path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
 							</svg>
 						</button>
-						<button class="p-2 focus:bg-green-600 hover:bg-green-600 rounded-full transition duration-300 ease-in-out print:hidden" on:click={removeItem}>
+						<button class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden" on:click={removeItem}>
 							<!-- heroicons solid trash -->
 							<svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 								<path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
@@ -159,9 +161,9 @@
 						</button>
 					</div>
 				</td>
-				<td class="p-2 bg-green-400 rounded shadow-md w-px whitespace-nowrap">{l.itemPrice}</td>
-				<td class="p-2 bg-green-400 rounded shadow-md w-px whitespace-nowrap">{l.itemQty}</td>
-				<td class="p-2 bg-green-400 rounded shadow-md w-px whitespace-nowrap">{l.itemAmount}</td>
+				<td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}">{l.itemPrice}</td>
+				<td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}">{l.itemQty}</td>
+				<td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}">{l.itemAmount}</td>
 			</tr>
 		</thead>
 		<tbody class="">
@@ -280,7 +282,7 @@
 <div class="flex flex-wrap justify-center items-center my-4 print:hidden gap-4">
 	<label class="">
 		<span class="">Currency:</span>
-		<input class="border border-green-500 w-12" bind:value={q.currency} />
+		<input class="border border-green-500 w-12" type="text" bind:value={q.currency} />
 	</label>
 	<button
 		class="block duration-300 p-4 bg-green-500 text-gray-100 hover:bg-gray-100 focus:bg-gray-100 hover:text-gray-900 focus:text-gray-900"
@@ -288,4 +290,8 @@
 	>
 		Print
 	</button>
+	<label class="">
+		<span class="">Save ink:</span>
+		<input class="accent-green-500" type="checkbox" bind:checked={saveink} />
+	</label>
 </div>
