@@ -1,0 +1,9 @@
+{
+  "license": "MIT",
+  "scripts": {
+    "start": "serve dist/"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
