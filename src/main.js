@@ -1,3 +1,4 @@
+import { mount } from "svelte";
 import App from "./App.svelte";
 import "./style.css";
 
@@ -67,6 +68,7 @@ let data = {
       itemDesc: ["", "", "", "", "", ""],
       itemPrice: ["", "", "", "", "", ""],
       itemQty: ["", "", "", "", "", ""],
+      itemAmount: ["", "", "", "", "", ""],
       vatRate: "0.05",
       whtRate: "0",
       totalAdjust: "",
@@ -137,7 +139,7 @@ let data = {
       subject: "",
       itemDesc: ["", "", "", "", "", ""],
       itemPrice: ["", "", "", "", "", ""],
-      itemQty: ["", "", "", "", "", ""],
+      itemAmount: ["", "", "", "", "", ""],
       vatRate: "0.07",
       whtRate: "0",
       totalAdjust: "",
@@ -146,8 +148,8 @@ let data = {
   },
 };
 
-const app = new App({
-  target: document.getElementById("app"),
+const app = mount(App, {
+  target: document.querySelector("#app"),
   props: {
     data,
   },
