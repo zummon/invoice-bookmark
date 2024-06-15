@@ -5,9 +5,8 @@ import "./style.css";
 let data = {
   "": {
     "": "English",
-    "font-link":
-      "https://fonts.googleapis.com/css2?family=Titillium+Web&display=swap",
-    "font-style": "font-family: 'Titillium Web', sans-serif;",
+    fontLink: "https://fonts.googleapis.com/css2?family=Titillium+Web&display=swap",
+    fontStyleFamily: "'Titillium Web', sans-serif",
     label: {
       "": {
         title: "Invoice",
@@ -49,37 +48,12 @@ let data = {
         title: "Tax Invoice",
       },
     },
-    q: {
-      lang: "",
-      doc: "",
-      currency: "$",
-      vendorLogo: "",
-      ref: Math.random().toString().slice(2, 10),
-      date: new Date().toLocaleDateString(undefined),
-      duedate: "",
-      vendorName: "Vendor Name",
-      vendorId: "Register",
-      vendorAddress: "Address",
-      clientName: "Client Name",
-      clientId: "Register",
-      clientAddress: "Address",
-      paymethod: "",
-      subject: "",
-      itemDesc: ["", "", "", "", "", ""],
-      itemPrice: ["", "", "", "", "", ""],
-      itemQty: ["", "", "", "", "", ""],
-      itemAmount: ["", "", "", "", "", ""],
-      vatRate: "0.05",
-      whtRate: "0",
-      totalAdjust: "",
-      note: "",
-    },
   },
 
   th: {
     "": "ภาษาไทย",
-    "font-link": "https://fonts.googleapis.com/css2?family=Athiti&display=swap",
-    "font-style": "font-family: 'Athiti', sans-serif;",
+    fontLink: "https://fonts.googleapis.com/css2?family=Athiti&display=swap",
+    fontStyleFamily: "'Athiti', sans-serif",
     label: {
       "": {
         title: "ใบแจ้งหนี้",
@@ -120,30 +94,6 @@ let data = {
       "tax-invoice": {
         title: "ใบกำกับภาษี",
       },
-    },
-    q: {
-      lang: "th",
-      doc: "",
-      currency: "฿",
-      vendorLogo: "",
-      ref: Math.random().toString().slice(2, 10),
-      date: new Date().toLocaleDateString("th"),
-      duedate: "",
-      vendorName: "ชื่อผู้ขาย",
-      vendorId: "เลขประจำตัว",
-      vendorAddress: "ที่อยู่",
-      clientName: "ชื่อลูกค้า",
-      clientId: "เลขประจำตัว",
-      clientAddress: "ที่อยู่",
-      paymethod: "",
-      subject: "",
-      itemDesc: ["", "", "", "", "", ""],
-      itemPrice: ["", "", "", "", "", ""],
-      itemAmount: ["", "", "", "", "", ""],
-      vatRate: "0.07",
-      whtRate: "0",
-      totalAdjust: "",
-      note: "",
     },
   },
 };

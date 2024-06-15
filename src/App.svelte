@@ -1,9 +1,32 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount } from "svelte";
+
   let { data } = $props();
 
-  let l = $state(data[""].label[""]);
-  let q = $state({itemDesc:[],...data[""].q});
+  let q = $state({
+    lang: "",
+    doc: "",
+    currency: "$",
+    vendorLogo: "",
+    ref: Math.random().toString().slice(2, 10),
+    date: new Date().toLocaleDateString(undefined),
+    duedate: "",
+    vendorName: "Vendor Name",
+    vendorId: "Register",
+    vendorAddress: "Address",
+    clientName: "Client Name",
+    clientId: "Register",
+    clientAddress: "Address",
+    paymethod: "",
+    subject: "",
+    itemDesc: ["", "", "", "", "", ""],
+    itemPrice: ["", "", "", "", "", ""],
+    itemQty: ["", "", "", "", "", ""],
+    vatRate: "0.05",
+    whtRate: "0",
+    adjust: "",
+    note: "",
+  });
   let saveink = $state(false);
 
   const price = (number) => {
@@ -13,38 +36,33 @@
     }
     return `${q.currency} ${number.toLocaleString(undefined, {
       minimumFractionDigits: 2,
+      maximunFractionDigits: 2,
     })}`;
   };
-  const qty = (number) => {
-    number = Number(number);
-    if (number === 0 || isNaN(number)) {
-      return "";
-    }
-    return number.toLocaleString(undefined, {
-      minimumFractionDigits: 0,
-    });
-  };
-  const rate = (rate) => {
-    rate = Number(rate) * 100;
-    if (!Number.isInteger(rate)) {
-      rate = rate.toFixed(2);
-    }
-    return `${rate} %`;
-  };
-  const addItem = () => {
-    q.itemDesc.push("");
-    q.itemPrice.push("");
-    q.itemQty.push("");
-  };
-  const removeItem = () => {
-    q.itemDesc.pop();
-    q.itemPrice.pop();
-    q.itemQty.pop();
-  };
+
+  let l = $derived({
+    ...data[q.lang].label[""],
+    ...data[q.lang].label[q.doc],
+  });
+  let itemAmount = $derived(
+    q.itemPrice.map((_, i) => {
+      const num = Number(q.itemPrice[i]) * Number(q.itemQty[i]);
+      return num ? num : "";
+    })
+  );
+  let totalAmount = $derived(
+    itemAmount.reduce((accum, amt) => {
+      const num = Number(accum) + Number(amt);
+      return num ? num : "";
+    }, 0)
+  );
+  let totalVat = $derived(Number(totalAmount) * Number(q.vatRate));
+  let totalWht = $derived(Number(totalAmount) * Number(q.whtRate));
+  let totalFinal = $derived(Number(totalAmount) + Number(totalVat) + Number(totalWht) + Number(q.adjust));
 
   onMount(() => {
     const s = new URLSearchParams(location.search);
-    let obj = {...q};
+    let obj = { ...q };
     Object.keys(q).forEach((key) => {
       const values = s.getAll(key);
       if (values.length > 0) {
@@ -59,43 +77,12 @@
   });
 
   $effect(() => {
-    document.body.style = data[q.lang]["font-style"];
-  });
-  $effect(() => {
-    l = {
-      ...data[q.lang].label[""],
-      ...data[q.lang].label[q.doc],
-    };
-  });
-  $effect(() => {
-    q.itemAmount = q.itemPrice.map((pr, i) => {
-      const num = Number(pr) * Number(q.itemQty[i]);
-      return num ? num : "";
-    });
-  });
-  $effect(() => {
-    q.totalAmount = q.itemAmount.reduce((a, b) => {
-      const num = Number(a) + Number(b);
-      return num ? num : "";
-    }, 0);
-  });
-  $effect(() => {
-    q.totalVat = Number(q.totalAmount) * Number(q.vatRate);
-  });
-  $effect(() => {
-    q.totalWht = Number(q.totalAmount) * Number(q.whtRate);
-  });
-  $effect(() => {
-    q.totalFinal =
-      Number(q.totalAmount) +
-      Number(q.totalVat) +
-      Number(q.totalWht) +
-      Number(q.totalAdjust);
+    document.body.style.fontFamily = data[q.lang].fontStyleFamily;
   });
 </script>
 
 <svelte:head>
-  <link href={data[q.lang]["font-link"]} rel="stylesheet" />
+  <link href={data[q.lang].fontLink} rel="stylesheet" />
 </svelte:head>
 
 <div class="flex flex-wrap justify-center items-center my-4 print:hidden">
@@ -106,6 +93,27 @@
         : 'text-gray-900 bg-gray-100 hover:bg-green-500 focus:bg-green-500 hover:text-gray-100 focus:text-gray-100'}"
       onclick={() => {
         q.lang = lng;
+        if (lng == "th") {
+          q.currency = "฿";
+          q.date = new Date().toLocaleDateString("th");
+          q.vendorName = "ชื่อผู้ขาย";
+          q.vendorId = "เลขประจำตัว";
+          q.vendorAddress = "ที่อยู่";
+          q.clientName = "ชื่อลูกค้า";
+          q.clientId = "เลขประจำตัว";
+          q.clientAddress = "ที่อยู่";
+          q.vatRate = "0.07";
+        } else {
+          q.currency = "$";
+          q.date = new Date().toLocaleDateString(undefined);
+          q.vendorName = "Vendor Name";
+          q.vendorId = "Register";
+          q.vendorAddress = "Address";
+          q.clientName = "Client Name";
+          q.clientId = "Register";
+          q.clientAddress = "Address";
+          q.vatRate = "0.05";
+        }
       }}
     >
       {data[lng][""]}
@@ -125,23 +133,15 @@
   {/each}
 </div>
 
-<div
-  class="bg-white text-black max-w-[60rem] mx-auto print:max-w-none print:mx-0"
->
+<div class="bg-white text-black max-w-[60rem] mx-auto print:max-w-none print:mx-0">
   <div class="grid grid-cols-2">
     <div class="">
-      <div
-        class="w-1/2 md:w-1/3 h-full p-2 mx-auto rounded-b-full shadow-lg {saveink
-          ? ''
-          : 'bg-green-400'}"
-      >
+      <div class="w-1/2 md:w-1/3 h-full p-2 mx-auto rounded-b-full shadow-lg {saveink ? '' : 'bg-green-400'}">
         <img class="my-auto" src={q.vendorLogo} alt="" width="" height="" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-2 self-center">
-      <h1
-        class="rounded text-center text-4xl border-b-2 border-green-400 text-green-400 shadow-md col-span-full p-3"
-      >
+      <h1 class="rounded text-center text-4xl border-b-2 border-green-400 text-green-400 shadow-md col-span-full p-3">
         {l.title}
       </h1>
       <div class=" text-right">{l.ref}</div>
@@ -159,31 +159,15 @@
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.client}
       </h3>
-      <h2
-        class="text-xl mb-2"
-        contenteditable="true"
-        bind:textContent={q.clientName}
-      ></h2>
-      <p
-        class="pl-3 mb-2"
-        contenteditable="true"
-        bind:textContent={q.clientId}
-      ></p>
-      <p
-        class="pl-3 mb-2"
-        contenteditable="true"
-        bind:textContent={q.clientAddress}
-      ></p>
+      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={q.clientName}></h2>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.clientId}></p>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.clientAddress}></p>
     </div>
     <div class="">
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.paymethod}
       </h3>
-      <p
-        class="pl-3 mb-3"
-        contenteditable="true"
-        bind:textContent={q.paymethod}
-      ></p>
+      <p class="pl-3 mb-3" contenteditable="true" bind:textContent={q.paymethod}></p>
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.subject}
       </h3>
@@ -193,46 +177,36 @@
   <table class="w-full my-3">
     <thead class="text-center">
       <tr class="text-white">
-        <td
-          class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink
-            ? 'text-green-400'
-            : 'bg-green-400'}">{l.itemNo}</td
+        <td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}"
+          >{l.itemNo}</td
         >
-        <td
-          class="rounded shadow-md {saveink
-            ? 'text-green-400'
-            : 'bg-green-400'}"
-        >
+        <td class="rounded shadow-md {saveink ? 'text-green-400' : 'bg-green-400'}">
           <div class="flex">
             <p class="p-2 flex-grow">{l.itemDesc}</p>
             <button
               class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden"
-              onclick={addItem}
+              onclick={() => {
+                q.itemDesc.push("");
+                q.itemPrice.push("");
+                q.itemQty.push("");
+              }}
             >
               <!-- heroicons solid duplicate -->
-              <svg
-                class="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z"
-                />
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
                 <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
               </svg>
             </button>
             <button
               class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden"
-              onclick={removeItem}
+              onclick={() => {
+                q.itemDesc.pop();
+                q.itemPrice.pop();
+                q.itemQty.pop();
+              }}
             >
               <!-- heroicons solid trash -->
-              <svg
-                class="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
+              <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fill-rule="evenodd"
                   d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -242,34 +216,22 @@
             </button>
           </div>
         </td>
-        <td
-          class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink
-            ? 'text-green-400'
-            : 'bg-green-400'}">{l.itemPrice}</td
+        <td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}"
+          >{l.itemPrice}</td
         >
-        <td
-          class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink
-            ? 'text-green-400'
-            : 'bg-green-400'}">{l.itemQty}</td
+        <td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}"
+          >{l.itemQty}</td
         >
-        <td
-          class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink
-            ? 'text-green-400'
-            : 'bg-green-400'}">{l.itemAmount}</td
+        <td class="p-2 rounded shadow-md w-px whitespace-nowrap {saveink ? 'text-green-400' : 'bg-green-400'}"
+          >{l.itemAmount}</td
         >
       </tr>
     </thead>
     <tbody class="">
       {#each q.itemDesc as _, i (`item-${i}`)}
         <tr class="border-b">
-          <td class="p-2 text-center whitespace-nowrap" contenteditable="true"
-            >{i + 1}</td
-          >
-          <td
-            class="p-2"
-            contenteditable="true"
-            bind:textContent={q.itemDesc[i]}
-          ></td>
+          <td class="p-2 text-center whitespace-nowrap" contenteditable="true">{i + 1}</td>
+          <td class="p-2" contenteditable="true" bind:textContent={q.itemDesc[i]}></td>
           <td
             class="p-2 text-center whitespace-nowrap"
             contenteditable="true"
@@ -295,24 +257,20 @@
               q.itemQty[i] = e.target.textContent;
             }}
             onblur={(e) => {
-              e.target.textContent = qty(q.itemQty[i]);
+              e.target.textContent = q.itemQty[i].toLocaleString();
             }}
           >
-            {qty(q.itemQty[i])}
+            {q.itemQty[i].toLocaleString()}
           </td>
           <td class="p-2 text-right whitespace-nowrap">
-            {price(q.itemAmount[i])}
+            {price(itemAmount[i])}
           </td>
         </tr>
       {/each}
     </tbody>
     <tfoot class="">
       <tr class="">
-        <td
-          class="p-2 text-center"
-          colspan="2"
-          rowspan={q.doc === "receipt" ? 5 : 4}
-        >
+        <td class="p-2 text-center" colspan="2" rowspan={q.doc === "receipt" ? 5 : 4}>
           <div class="grid grid-cols-2">
             <div class="rounded-3xl shadow-md text-center">
               <div class="">{l.vendorSign}</div>
@@ -326,11 +284,9 @@
             </div>
           </div>
         </td>
-        <td class="p-2 text-center whitespace-nowrap" colspan="2"
-          >{l.totalAmount}</td
-        >
+        <td class="p-2 text-center whitespace-nowrap" colspan="2">{l.totalAmount}</td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(q.totalAmount)}
+          {price(totalAmount)}
         </td>
       </tr>
       <tr class="">
@@ -347,14 +303,14 @@
               q.vatRate = e.target.textContent;
             }}
             onblur={(e) => {
-              e.target.textContent = rate(q.vatRate);
+              e.target.textContent = `${(Number(q.vatRate) * 100).toLocaleString()} %`;
             }}
           >
-            {rate(q.vatRate)}
+            {(Number(q.vatRate) * 100).toLocaleString()} %
           </span>
         </td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(q.totalVat)}
+          {price(totalVat)}
         </td>
       </tr>
       {#if q.doc === "receipt"}
@@ -372,43 +328,39 @@
                 q.whtRate = e.target.textContent;
               }}
               onblur={(e) => {
-                e.target.textContent = rate(q.whtRate);
+                e.target.textContent = `${(Number(q.whtRate) * 100).toLocaleString()} %`;
               }}
             >
-              {rate(q.whtRate)}
+              {(Number(q.whtRate) * 100).toLocaleString()} %
             </span>
           </td>
           <td class="p-2 text-right whitespace-nowrap">
-            {price(q.totalWht)}
+            {price(totalWht)}
           </td>
         </tr>
       {/if}
       <tr class="">
-        <td class="p-2 text-center whitespace-nowrap" colspan="2"
-          >{l.totalAdjust}</td
-        >
+        <td class="p-2 text-center whitespace-nowrap" colspan="2">{l.totalAdjust}</td>
         <td
           class="p-2 text-right"
           contenteditable="true"
           onfocus={(e) => {
-            e.target.textContent = q.totalAdjust;
+            e.target.textContent = q.adjust;
           }}
           oninput={(e) => {
-            q.totalAdjust = e.target.textContent;
+            q.adjust = e.target.textContent;
           }}
           onblur={(e) => {
-            e.target.textContent = price(q.totalAdjust);
+            e.target.textContent = price(q.adjust);
           }}
         >
-          {price(q.totalAdjust)}
+          {price(q.adjust)}
         </td>
       </tr>
       <tr class="">
-        <td class="p-2 text-center whitespace-nowrap" colspan="2"
-          >{l.totalFinal}</td
-        >
+        <td class="p-2 text-center whitespace-nowrap" colspan="2">{l.totalFinal}</td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(q.totalFinal)}
+          {price(totalFinal)}
         </td>
       </tr>
     </tfoot>
@@ -418,21 +370,9 @@
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.vendor}
       </h3>
-      <h2
-        class="text-xl mb-2"
-        contenteditable="true"
-        bind:textContent={q.vendorName}
-      ></h2>
-      <p
-        class="pl-3 mb-2"
-        contenteditable="true"
-        bind:textContent={q.vendorId}
-      ></p>
-      <p
-        class="pl-3 mb-2"
-        contenteditable="true"
-        bind:textContent={q.vendorAddress}
-      ></p>
+      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={q.vendorName}></h2>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.vendorId}></p>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.vendorAddress}></p>
     </div>
     <div class="">
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
@@ -447,11 +387,7 @@
 <div class="flex flex-wrap justify-center items-center my-4 print:hidden gap-4">
   <label class="">
     <span class="">Currency:</span>
-    <input
-      class="border border-green-500 w-12"
-      type="text"
-      bind:value={q.currency}
-    />
+    <input class="border border-green-500 w-12" type="text" bind:value={q.currency} />
   </label>
   <button
     class="block duration-300 p-4 bg-green-500 text-gray-100 hover:bg-gray-100 focus:bg-gray-100 hover:text-gray-900 focus:text-gray-900"
