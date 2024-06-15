@@ -4,10 +4,10 @@ import "./style.css";
 
 let data = {
   "": {
-    "": "English",
+    local: "English",
     fontLink: "https://fonts.googleapis.com/css2?family=Titillium+Web&display=swap",
-    fontStyleFamily: "'Titillium Web', sans-serif",
-    label: {
+    fontFamily: "'Titillium Web', sans-serif",
+    "": {
       "": {
         title: "Invoice",
         ref: "No",
@@ -51,10 +51,10 @@ let data = {
   },
 
   th: {
-    "": "ภาษาไทย",
+    local: "ภาษาไทย",
     fontLink: "https://fonts.googleapis.com/css2?family=Athiti&display=swap",
-    fontStyleFamily: "'Athiti', sans-serif",
-    label: {
+    fontFamily: "'Athiti', sans-serif",
+    "": {
       "": {
         title: "ใบแจ้งหนี้",
         ref: "เลขที่",

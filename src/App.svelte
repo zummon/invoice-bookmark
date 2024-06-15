@@ -1,9 +1,13 @@
 <script>
   import { onMount } from "svelte";
+  const theOption = {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  };
 
   let { data } = $props();
 
-  let q = $state({
+  let query = $state({
     lang: "",
     doc: "",
     currency: "$",
@@ -20,124 +24,113 @@
     paymethod: "",
     subject: "",
     itemDesc: ["", "", "", "", "", ""],
-    itemPrice: ["", "", "", "", "", ""],
-    itemQty: ["", "", "", "", "", ""],
-    vatRate: "0.05",
-    whtRate: "0",
-    adjust: "",
+    itemPrice: [0, 0, 0, 0, 0, 0],
+    itemQty: [0, 0, 0, 0, 0, 0],
+    vatRate: 0.05,
+    whtRate: 0,
+    adjust: 0,
     note: "",
   });
   let saveink = $state(false);
 
-  const price = (number) => {
-    number = Number(number);
-    if (number === 0 || isNaN(number)) {
-      return "";
-    }
-    return `${q.currency} ${number.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximunFractionDigits: 2,
-    })}`;
-  };
-
   let l = $derived({
-    ...data[q.lang].label[""],
-    ...data[q.lang].label[q.doc],
+    ...data[query.lang][""][""],
+    ...data[query.lang][""][query.doc],
   });
   let itemAmount = $derived(
-    q.itemPrice.map((_, i) => {
-      const num = Number(q.itemPrice[i]) * Number(q.itemQty[i]);
-      return num ? num : "";
+    query.itemPrice.map((_, index) => {
+      return query.itemPrice[index] * query.itemQty[index];
     })
   );
   let totalAmount = $derived(
-    itemAmount.reduce((accum, amt) => {
-      const num = Number(accum) + Number(amt);
-      return num ? num : "";
+    itemAmount.reduce((prev, curr) => {
+      return prev + curr;
     }, 0)
   );
-  let totalVat = $derived(Number(totalAmount) * Number(q.vatRate));
-  let totalWht = $derived(Number(totalAmount) * Number(q.whtRate));
-  let totalFinal = $derived(Number(totalAmount) + Number(totalVat) + Number(totalWht) + Number(q.adjust));
+  let totalVat = $derived(totalAmount * query.vatRate);
+  let totalWht = $derived(totalAmount * query.whtRate);
+  let totalFinal = $derived(totalAmount + totalVat + totalWht + query.adjust);
 
   onMount(() => {
-    const s = new URLSearchParams(location.search);
-    let obj = { ...q };
-    Object.keys(q).forEach((key) => {
-      const values = s.getAll(key);
+    const searchParams = new URLSearchParams(location.search);
+    Object.keys({ ...query }).forEach((key) => {
+      const values = searchParams.getAll(key);
       if (values.length > 0) {
-        if (Array.isArray(q[key])) {
-          obj[key] = values;
-          return;
+        if (Array.isArray(query[key])) {
+          values.forEach((value, index) => {
+            if (typeof query[key][index] == "number") {
+              query[key][index] = Number(value);
+            } else {
+              query[key][index] = value;
+            }
+          });
+        } else if (typeof query[key] == "number") {
+          query[key] = Number(values[0]);
+        } else {
+          query[key] = values[0];
         }
-        obj[key] = values[0];
       }
     });
-    q = { ...data[q.lang].q, ...obj };
-  });
-
-  $effect(() => {
-    document.body.style.fontFamily = data[q.lang].fontStyleFamily;
   });
 </script>
 
 <svelte:head>
-  <link href={data[q.lang].fontLink} rel="stylesheet" />
+  <link href={data[query.lang].fontLink} rel="stylesheet" />
 </svelte:head>
 
 <div class="flex flex-wrap justify-center items-center my-4 print:hidden">
-  {#each Object.keys(data) as lng, i (`lang-${i}`)}
+  {#each Object.keys(data) as lng}
     <button
-      class="block duration-300 p-4 {q.lang === lng
+      class="block duration-300 p-4 {query.lang === lng
         ? 'bg-green-500 text-gray-100'
         : 'text-gray-900 bg-gray-100 hover:bg-green-500 focus:bg-green-500 hover:text-gray-100 focus:text-gray-100'}"
       onclick={() => {
-        q.lang = lng;
+        query.lang = lng;
         if (lng == "th") {
-          q.currency = "฿";
-          q.date = new Date().toLocaleDateString("th");
-          q.vendorName = "ชื่อผู้ขาย";
-          q.vendorId = "เลขประจำตัว";
-          q.vendorAddress = "ที่อยู่";
-          q.clientName = "ชื่อลูกค้า";
-          q.clientId = "เลขประจำตัว";
-          q.clientAddress = "ที่อยู่";
-          q.vatRate = "0.07";
+          query.currency = "฿";
+          query.date = new Date().toLocaleDateString("th");
+          query.vendorName = "ชื่อผู้ขาย";
+          query.vendorId = "เลขประจำตัว";
+          query.vendorAddress = "ที่อยู่";
+          query.clientName = "ชื่อลูกค้า";
+          query.clientId = "เลขประจำตัว";
+          query.clientAddress = "ที่อยู่";
+          query.vatRate = "0.07";
         } else {
-          q.currency = "$";
-          q.date = new Date().toLocaleDateString(undefined);
-          q.vendorName = "Vendor Name";
-          q.vendorId = "Register";
-          q.vendorAddress = "Address";
-          q.clientName = "Client Name";
-          q.clientId = "Register";
-          q.clientAddress = "Address";
-          q.vatRate = "0.05";
+          query.currency = "$";
+          query.date = new Date().toLocaleDateString(undefined);
+          query.vendorName = "Vendor Name";
+          query.vendorId = "Register";
+          query.vendorAddress = "Address";
+          query.clientName = "Client Name";
+          query.clientId = "Register";
+          query.clientAddress = "Address";
+          query.vatRate = "0.05";
         }
       }}
     >
-      {data[lng][""]}
+      {data[lng].local}
     </button>
   {/each}
-  {#each Object.keys(data[q.lang].label) as dc, i (`doc-${i}`)}
+  {#each Object.keys(data[query.lang][""]) as doc}
     <button
-      class="block duration-300 p-4 {q.doc === dc
+      class="block duration-300 p-4 {query.doc === doc
         ? 'bg-green-500 text-gray-100'
         : 'text-gray-900 bg-gray-100 hover:bg-green-500 focus:bg-green-500 hover:text-gray-100 focus:text-gray-100'}"
       onclick={() => {
-        q.doc = dc;
+        query.doc = doc;
       }}
     >
-      {data[q.lang].label[dc].title}
+      {data[query.lang][""][doc].title}
     </button>
   {/each}
 </div>
 
-<div class="bg-white text-black max-w-[60rem] mx-auto print:max-w-none print:mx-0">
+<div class="max-w-[60rem] mx-auto print:max-w-none print:mx-0" style="font-family: {data[query.lang].fontFamily};">
   <div class="grid grid-cols-2">
     <div class="">
       <div class="w-1/2 md:w-1/3 h-full p-2 mx-auto rounded-b-full shadow-lg {saveink ? '' : 'bg-green-400'}">
-        <img class="my-auto" src={q.vendorLogo} alt="" width="" height="" />
+        <img class="my-auto" src={query.vendorLogo} alt="" width="" height="" />
       </div>
     </div>
     <div class="grid grid-cols-2 gap-2 self-center">
@@ -145,12 +138,12 @@
         {l.title}
       </h1>
       <div class=" text-right">{l.ref}</div>
-      <div class="" contenteditable="true" bind:textContent={q.ref}></div>
+      <div class="" contenteditable="true" bind:textContent={query.ref}></div>
       <div class=" text-right">{l.date}</div>
-      <div class="" contenteditable="true" bind:textContent={q.date}></div>
-      {#if q.doc !== "receipt"}
+      <div class="" contenteditable="true" bind:textContent={query.date}></div>
+      {#if query.doc !== "receipt"}
         <div class=" text-right">{l.duedate}</div>
-        <div class="" contenteditable="true" bind:textContent={q.duedate}></div>
+        <div class="" contenteditable="true" bind:textContent={query.duedate}></div>
       {/if}
     </div>
   </div>
@@ -159,19 +152,19 @@
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.client}
       </h3>
-      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={q.clientName}></h2>
-      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.clientId}></p>
-      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.clientAddress}></p>
+      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={query.clientName}></h2>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={query.clientId}></p>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={query.clientAddress}></p>
     </div>
     <div class="">
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.paymethod}
       </h3>
-      <p class="pl-3 mb-3" contenteditable="true" bind:textContent={q.paymethod}></p>
+      <p class="pl-3 mb-3" contenteditable="true" bind:textContent={query.paymethod}></p>
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.subject}
       </h3>
-      <p class="pl-3" contenteditable="true" bind:textContent={q.subject}></p>
+      <p class="pl-3" contenteditable="true" bind:textContent={query.subject}></p>
     </div>
   </div>
   <table class="w-full my-3">
@@ -186,9 +179,9 @@
             <button
               class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden"
               onclick={() => {
-                q.itemDesc.push("");
-                q.itemPrice.push("");
-                q.itemQty.push("");
+                query.itemDesc.push("");
+                query.itemPrice.push("");
+                query.itemQty.push("");
               }}
             >
               <!-- heroicons solid duplicate -->
@@ -200,9 +193,9 @@
             <button
               class="p-2 focus:bg-black/25 hover:bg-black/25 rounded-full transition duration-300 ease-in-out print:hidden"
               onclick={() => {
-                q.itemDesc.pop();
-                q.itemPrice.pop();
-                q.itemQty.pop();
+                query.itemDesc.pop();
+                query.itemPrice.pop();
+                query.itemQty.pop();
               }}
             >
               <!-- heroicons solid trash -->
@@ -228,49 +221,51 @@
       </tr>
     </thead>
     <tbody class="">
-      {#each q.itemDesc as _, i (`item-${i}`)}
+      {#each query.itemDesc as _, index (`item-${index}`)}
         <tr class="border-b">
-          <td class="p-2 text-center whitespace-nowrap" contenteditable="true">{i + 1}</td>
-          <td class="p-2" contenteditable="true" bind:textContent={q.itemDesc[i]}></td>
+          <td class="p-2 text-center whitespace-nowrap" contenteditable="true">{index + 1}</td>
+          <td class="p-2" contenteditable="true" bind:textContent={query.itemDesc[index]}></td>
           <td
             class="p-2 text-center whitespace-nowrap"
             contenteditable="true"
             onfocus={(e) => {
-              e.target.textContent = q.itemPrice[i];
+              e.target.textContent = query.itemPrice[index];
             }}
             oninput={(e) => {
-              q.itemPrice[i] = e.target.textContent;
+              query.itemPrice[index] = Number(e.target.textContent);
             }}
             onblur={(e) => {
-              e.target.textContent = price(q.itemPrice[i]);
+              e.target.textContent = query.itemPrice[index]
+                ? query.itemPrice[index].toLocaleString(undefined, theOption)
+                : "";
             }}
           >
-            {price(q.itemPrice[i])}
+            {query.itemPrice[index] ? query.itemPrice[index].toLocaleString(undefined, theOption) : ""}
           </td>
           <td
             class="p-2 text-center whitespace-nowrap"
             contenteditable="true"
             onfocus={(e) => {
-              e.target.textContent = q.itemQty[i];
+              e.target.textContent = query.itemQty[index];
             }}
             oninput={(e) => {
-              q.itemQty[i] = e.target.textContent;
+              query.itemQty[index] = Number(e.target.textContent);
             }}
             onblur={(e) => {
-              e.target.textContent = q.itemQty[i].toLocaleString();
+              e.target.textContent = query.itemQty[index] ? query.itemQty[index].toLocaleString() : "";
             }}
           >
-            {q.itemQty[i].toLocaleString()}
+            {query.itemQty[index] ? query.itemQty[index].toLocaleString() : ""}
           </td>
           <td class="p-2 text-right whitespace-nowrap">
-            {price(itemAmount[i])}
+            {itemAmount[index] ? itemAmount[index].toLocaleString(undefined, theOption) : ""}
           </td>
         </tr>
       {/each}
     </tbody>
     <tfoot class="">
       <tr class="">
-        <td class="p-2 text-center" colspan="2" rowspan={q.doc === "receipt" ? 5 : 4}>
+        <td class="p-2 text-center" colspan="2" rowspan={query.doc === "receipt" ? 5 : 4}>
           <div class="grid grid-cols-2">
             <div class="rounded-3xl shadow-md text-center">
               <div class="">{l.vendorSign}</div>
@@ -286,7 +281,7 @@
         </td>
         <td class="p-2 text-center whitespace-nowrap" colspan="2">{l.totalAmount}</td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(totalAmount)}
+          {totalAmount.toLocaleString(undefined, theOption)}
         </td>
       </tr>
       <tr class="">
@@ -297,23 +292,23 @@
             class=""
             contenteditable="true"
             onfocus={(e) => {
-              e.target.textContent = q.vatRate;
+              e.target.textContent = query.vatRate;
             }}
             oninput={(e) => {
-              q.vatRate = e.target.textContent;
+              query.vatRate = Number(e.target.textContent);
             }}
             onblur={(e) => {
-              e.target.textContent = `${(Number(q.vatRate) * 100).toLocaleString()} %`;
+              e.target.textContent = `${(query.vatRate * 100).toLocaleString()} %`;
             }}
           >
-            {(Number(q.vatRate) * 100).toLocaleString()} %
+            {(query.vatRate * 100).toLocaleString()} %
           </span>
         </td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(totalVat)}
+          {totalVat.toLocaleString(undefined, theOption)}
         </td>
       </tr>
-      {#if q.doc === "receipt"}
+      {#if query.doc === "receipt"}
         <tr class="">
           <td class="p-2 text-center whitespace-nowrap" colspan="2">
             <span class="">{l.totalWht}</span>
@@ -322,20 +317,20 @@
               class=""
               contenteditable="true"
               onfocus={(e) => {
-                e.target.textContent = q.whtRate;
+                e.target.textContent = query.whtRate;
               }}
               oninput={(e) => {
-                q.whtRate = e.target.textContent;
+                query.whtRate = Number(e.target.textContent);
               }}
               onblur={(e) => {
-                e.target.textContent = `${(Number(q.whtRate) * 100).toLocaleString()} %`;
+                e.target.textContent = `${(query.whtRate * 100).toLocaleString()} %`;
               }}
             >
-              {(Number(q.whtRate) * 100).toLocaleString()} %
+              {(query.whtRate * 100).toLocaleString()} %
             </span>
           </td>
           <td class="p-2 text-right whitespace-nowrap">
-            {price(totalWht)}
+            {totalWht.toLocaleString(undefined, theOption)}
           </td>
         </tr>
       {/if}
@@ -345,22 +340,24 @@
           class="p-2 text-right"
           contenteditable="true"
           onfocus={(e) => {
-            e.target.textContent = q.adjust;
+            e.target.textContent = query.adjust;
           }}
           oninput={(e) => {
-            q.adjust = e.target.textContent;
+            query.adjust = Number(e.target.textContent);
           }}
           onblur={(e) => {
-            e.target.textContent = price(q.adjust);
+            e.target.textContent = query.adjust.toLocaleString(undefined, theOption);
           }}
         >
-          {price(q.adjust)}
+          {query.adjust.toLocaleString(undefined, theOption)}
         </td>
       </tr>
       <tr class="">
         <td class="p-2 text-center whitespace-nowrap" colspan="2">{l.totalFinal}</td>
         <td class="p-2 text-right whitespace-nowrap">
-          {price(totalFinal)}
+          <span class="bg-yellow-300 print:bg-transparent" contenteditable="true" bind:textContent={query.currency}
+          ></span>
+          {totalFinal.toLocaleString(undefined, theOption)}
         </td>
       </tr>
     </tfoot>
@@ -370,15 +367,15 @@
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.vendor}
       </h3>
-      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={q.vendorName}></h2>
-      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.vendorId}></p>
-      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={q.vendorAddress}></p>
+      <h2 class="text-xl mb-2" contenteditable="true" bind:textContent={query.vendorName}></h2>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={query.vendorId}></p>
+      <p class="pl-3 mb-2" contenteditable="true" bind:textContent={query.vendorAddress}></p>
     </div>
     <div class="">
       <h3 class=" border-b-2 border-green-400 text-green-400 pb-1 mb-1">
         {l.note}
       </h3>
-      <p class="pl-3 mb-3" contenteditable="true" bind:textContent={q.note}></p>
+      <p class="pl-3 mb-3" contenteditable="true" bind:textContent={query.note}></p>
       <h2 class=" text-xl text-center text-green-400">{l.thankMessage}</h2>
     </div>
   </div>
@@ -386,8 +383,8 @@
 
 <div class="flex flex-wrap justify-center items-center my-4 print:hidden gap-4">
   <label class="">
-    <span class="">Currency:</span>
-    <input class="border border-green-500 w-12" type="text" bind:value={q.currency} />
+    <span class="">Save ink:</span>
+    <input class="accent-green-500" type="checkbox" bind:checked={saveink} />
   </label>
   <button
     class="block duration-300 p-4 bg-green-500 text-gray-100 hover:bg-gray-100 focus:bg-gray-100 hover:text-gray-900 focus:text-gray-900"
@@ -397,8 +394,4 @@
   >
     Print
   </button>
-  <label class="">
-    <span class="">Save ink:</span>
-    <input class="accent-green-500" type="checkbox" bind:checked={saveink} />
-  </label>
 </div>
